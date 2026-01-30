@@ -127,7 +127,15 @@ def render_step_indicator():
 
 def render_main_content(settings: Dict[str, Any]):
     """Render main content area based on current step."""
-    from .components import (
+    import sys
+    from pathlib import Path
+    
+    # Add src to path for imports
+    src_path = str(Path(__file__).parent.parent)
+    if src_path not in sys.path:
+        sys.path.insert(0, src_path)
+    
+    from ui.components import (
         profile_input,
         results_display,
         portfolio_preview,

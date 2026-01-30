@@ -231,4 +231,4 @@ For questions or feedback, please open an issue or reach out to the maintainers.
 
 ---
 
-**Built with ❤️ using AI-powered tools**
+

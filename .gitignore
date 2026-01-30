@@ -1,2 +1,7 @@
-/.env
-/.env.example
+# Environment files
+.env
+.env.example
+
+# Virtual environments
+venv/
+.venv/

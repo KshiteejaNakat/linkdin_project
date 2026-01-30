@@ -39,11 +39,52 @@ class GitHubAnalyzer:
     """
     Analyzes GitHub profiles to extract technical skills,
     project portfolio, and contribution patterns.
+    Filters for GenAI-related projects only.
     """
+    
+    # GenAI-related keywords for filtering projects
+    GENAI_KEYWORDS = [
+        "genai", "gen-ai", "generative-ai", "llm", "gpt", "transformer",
+        "langchain", "llamaindex", "openai", "huggingface", "chatbot",
+        "nlp", "natural-language", "machine-learning", "ml", "ai",
+        "deep-learning", "neural-network", "pytorch", "tensorflow",
+        "rag", "retrieval", "embedding", "vector", "semantic",
+        "diffusion", "stable-diffusion", "midjourney", "dall-e",
+        "prompt", "fine-tuning", "lora", "qlora", "peft",
+        "agent", "autogen", "crewai", "anthropic", "claude", "gemini",
+        "mistral", "llama", "phi", "falcon", "bert", "gpt4", "gpt-4"
+    ]
     
     def __init__(self, access_token: Optional[str] = None):
         self.access_token = access_token
         self.api_base = "https://api.github.com"
+    
+    def _is_genai_project(self, repo) -> bool:
+        """Check if a repository is GenAI-related."""
+        # Check name
+        name_lower = (repo.name or "").lower()
+        for keyword in self.GENAI_KEYWORDS:
+            if keyword in name_lower:
+                return True
+        
+        # Check description
+        desc_lower = (repo.description or "").lower()
+        for keyword in self.GENAI_KEYWORDS:
+            if keyword in desc_lower:
+                return True
+        
+        # Check topics
+        try:
+            topics = repo.get_topics() if hasattr(repo, 'get_topics') else []
+            for topic in topics:
+                topic_lower = topic.lower()
+                for keyword in self.GENAI_KEYWORDS:
+                    if keyword in topic_lower:
+                        return True
+        except:
+            pass
+        
+        return False
         
     async def analyze_profile(self, username: str) -> Optional[GitHubProfile]:
         """Analyze a GitHub profile."""
@@ -72,7 +113,11 @@ class GitHubAnalyzer:
             languages = {}
             projects = []
             
-            for repo in repos[:20]:  # Limit to 20 repos
+            for repo in repos[:50]:  # Check more repos to find GenAI ones
+                # Filter for GenAI-related projects only
+                if not self._is_genai_project(repo):
+                    continue
+                
                 # Count languages
                 if repo.language:
                     languages[repo.language] = languages.get(repo.language, 0) + 1
@@ -86,7 +131,7 @@ class GitHubAnalyzer:
                     forks=repo.forks_count,
                     topics=repo.get_topics(),
                     url=repo.html_url,
-                    is_featured=repo.stargazers_count > 10
+                    is_featured=repo.stargazers_count > 5
                 ))
             
             # Sort languages by frequency
@@ -109,11 +154,11 @@ class GitHubAnalyzer:
             return self._get_sample_profile(username)
     
     def _get_sample_profile(self, username: str) -> GitHubProfile:
-        """Return sample profile for demonstration."""
+        """Return sample profile for demonstration with GenAI projects."""
         return GitHubProfile(
             username=username,
-            name="Sample Developer",
-            bio="Passionate developer building impactful software",
+            name="GenAI Developer",
+            bio="Building the future with Generative AI and LLMs",
             public_repos=25,
             followers=150,
             following=50,
@@ -121,23 +166,43 @@ class GitHubAnalyzer:
             contribution_score=75,
             projects=[
                 GitHubProject(
-                    name="ai-project",
-                    description="Machine learning project",
+                    name="langchain-rag-app",
+                    description="RAG application using LangChain and vector databases",
                     language="Python",
                     stars=45,
                     forks=12,
-                    topics=["machine-learning", "python", "ai"],
-                    url=f"https://github.com/{username}/ai-project",
+                    topics=["langchain", "rag", "llm", "genai", "vector-database"],
+                    url=f"https://github.com/{username}/langchain-rag-app",
                     is_featured=True
                 ),
                 GitHubProject(
-                    name="web-app",
-                    description="Full-stack web application",
-                    language="TypeScript",
-                    stars=23,
+                    name="llm-fine-tuning",
+                    description="Fine-tuning LLMs with LoRA and QLoRA techniques",
+                    language="Python",
+                    stars=38,
+                    forks=8,
+                    topics=["llm", "fine-tuning", "lora", "huggingface", "transformers"],
+                    url=f"https://github.com/{username}/llm-fine-tuning",
+                    is_featured=True
+                ),
+                GitHubProject(
+                    name="ai-agent-framework",
+                    description="Multi-agent system for autonomous task execution",
+                    language="Python",
+                    stars=32,
+                    forks=6,
+                    topics=["ai-agents", "autogen", "crewai", "genai"],
+                    url=f"https://github.com/{username}/ai-agent-framework",
+                    is_featured=True
+                ),
+                GitHubProject(
+                    name="gpt-chatbot",
+                    description="Conversational AI chatbot with GPT integration",
+                    language="Python",
+                    stars=28,
                     forks=5,
-                    topics=["react", "nodejs", "typescript"],
-                    url=f"https://github.com/{username}/web-app",
+                    topics=["chatbot", "gpt", "openai", "nlp"],
+                    url=f"https://github.com/{username}/gpt-chatbot",
                     is_featured=True
                 )
             ]
